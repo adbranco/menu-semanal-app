@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planificador de Menús Semanal</title>
+    <title>Planificador de Menús</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👨‍🍳</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -17,12 +18,14 @@
         const { useState, useEffect } = React;
         const { createClient } = supabase;
 
+        const ANTHROPIC_API_KEY = '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';
+
         const supabaseClient = createClient(
             'https://onqdchjbxpqzydfbimpj.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ucWRjaGpieHBxenlkZmJpbXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDM3NTksImV4cCI6MjA4NjU3OTc1OX0.9Kh_bD1suRC-b0WmwdWBxPCCL3xd4EIsN2buFR5DI5M'
         );
 
-        // Iconos simples con SVG
+        // Iconos SVG
         const ChefHatIcon = () => (
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -83,6 +86,30 @@
             </svg>
         );
 
+        const SparklesIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+        );
+
+        const PhotoIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        );
+
+        const LinkIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+        );
+
+        const DocumentTextIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        );
+
         const MealPlannerApp = () => {
             const [activeTab, setActiveTab] = useState('planner');
             const [recipes, setRecipes] = useState([]);
@@ -99,6 +126,11 @@
             const [weekHistory, setWeekHistory] = useState([]);
             const [season, setSeason] = useState('invierno');
             const [showRecipeForm, setShowRecipeForm] = useState(false);
+            const [showImportModal, setShowImportModal] = useState(false);
+            const [importType, setImportType] = useState('');
+            const [importLoading, setImportLoading] = useState(false);
+            const [importData, setImportData] = useState('');
+            const [importedRecipe, setImportedRecipe] = useState(null);
             const [editingRecipe, setEditingRecipe] = useState(null);
             const [newRecipe, setNewRecipe] = useState({
                 nombre: '',
@@ -224,6 +256,145 @@
                 }
             }, [weekPlan, currentWeekId, loading]);
 
+            async function importRecipeWithAI() {
+                setImportLoading(true);
+                try {
+                    let prompt = '';
+                    
+                    if (importType === 'url') {
+                        prompt = `Extrae la receta de esta URL: ${importData}
+
+Responde SOLO con un JSON en este formato exacto:
+{
+  "nombre": "Nombre de la receta",
+  "temporada": "all|verano|invierno",
+  "tipo": "batch|momento",
+  "raciones": 3,
+  "ingredientes": [
+    {"name": "Ingrediente", "amount": 100, "unit": "g", "category": "frescos|proteinas|despensa"}
+  ]
+}`;
+                    } else if (importType === 'text') {
+                        prompt = `A partir de esta descripción de receta, extrae los ingredientes:
+
+${importData}
+
+Responde SOLO con un JSON en este formato exacto:
+{
+  "nombre": "Nombre de la receta",
+  "temporada": "all|verano|invierno",
+  "tipo": "batch|momento",
+  "raciones": 3,
+  "ingredientes": [
+    {"name": "Ingrediente", "amount": 100, "unit": "g", "category": "frescos|proteinas|despensa"}
+  ]
+}
+
+Clasifica ingredientes:
+- frescos: verduras, frutas
+- proteinas: carnes, pescados, huevos, quesos
+- despensa: pasta, arroz, conservas, especias`;
+                    }
+
+                    const response = await fetch('https://api.anthropic.com/v1/messages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': ANTHROPIC_API_KEY,
+                            'anthropic-version': '2023-06-01'
+                        },
+                        body: JSON.stringify({
+                            model: 'claude-sonnet-4-20250514',
+                            max_tokens: 2000,
+                            messages: [{
+                                role: 'user',
+                                content: prompt
+                            }]
+                        })
+                    });
+
+                    const data = await response.json();
+                    const text = data.content[0].text;
+                    const cleanJson = text.replace(/```json|```/g, '').trim();
+                    const recipeData = JSON.parse(cleanJson);
+                    
+                    setImportedRecipe(recipeData);
+                } catch (error) {
+                    console.error('Error importing recipe:', error);
+                    alert('Error al importar receta: ' + error.message);
+                }
+                setImportLoading(false);
+            }
+
+            async function importRecipeFromImage(file) {
+                setImportLoading(true);
+                try {
+                    const base64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+
+                    const response = await fetch('https://api.anthropic.com/v1/messages', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': ANTHROPIC_API_KEY,
+                            'anthropic-version': '2023-06-01'
+                        },
+                        body: JSON.stringify({
+                            model: 'claude-sonnet-4-20250514',
+                            max_tokens: 2000,
+                            messages: [{
+                                role: 'user',
+                                content: [
+                                    {
+                                        type: 'image',
+                                        source: {
+                                            type: 'base64',
+                                            media_type: file.type,
+                                            data: base64
+                                        }
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: `Analiza esta imagen de receta y extrae los ingredientes.
+
+Responde SOLO con un JSON en este formato exacto:
+{
+  "nombre": "Nombre de la receta",
+  "temporada": "all|verano|invierno",
+  "tipo": "batch|momento",
+  "raciones": 3,
+  "ingredientes": [
+    {"name": "Ingrediente", "amount": 100, "unit": "g", "category": "frescos|proteinas|despensa"}
+  ]
+}
+
+Clasifica ingredientes:
+- frescos: verduras, frutas
+- proteinas: carnes, pescados, huevos, quesos
+- despensa: pasta, arroz, conservas, especias`
+                                    }
+                                ]
+                            }]
+                        })
+                    });
+
+                    const data = await response.json();
+                    const text = data.content[0].text;
+                    const cleanJson = text.replace(/```json|```/g, '').trim();
+                    const recipeData = JSON.parse(cleanJson);
+                    
+                    setImportedRecipe(recipeData);
+                } catch (error) {
+                    console.error('Error importing from image:', error);
+                    alert('Error al importar desde imagen: ' + error.message);
+                }
+                setImportLoading(false);
+            }
+
             const generateShoppingList = () => {
                 const list = { frescos: {}, proteinas: {}, despensa: {} };
                 
@@ -330,6 +501,26 @@
                 }
             };
 
+            const saveImportedRecipe = async () => {
+                try {
+                    const { error } = await supabaseClient
+                        .from('recipes')
+                        .insert([importedRecipe]);
+
+                    if (error) throw error;
+
+                    await loadData(currentWeekId);
+                    setShowImportModal(false);
+                    setImportedRecipe(null);
+                    setImportData('');
+                    setImportType('');
+                    alert('¡Receta importada con éxito!');
+                } catch (error) {
+                    console.error('Error saving imported recipe:', error);
+                    alert('Error al guardar receta: ' + error.message);
+                }
+            };
+
             const deleteRecipe = async (id) => {
                 if (confirm('¿Eliminar esta receta?')) {
                     try {
@@ -380,7 +571,7 @@
                         <header className="bg-white rounded-lg shadow-md p-6 mb-6">
                             <div className="flex items-center justify-between flex-wrap gap-4">
                                 <div className="flex items-center gap-3">
-                                    <ChefHatIcon />
+                                    <div className="text-4xl">👨‍🍳</div>
                                     <div>
                                         <h1 className="text-3xl font-bold text-gray-800">Planificador de Menús</h1>
                                         <p className="text-gray-600">Organiza tu semana con batch cooking · Semana {currentWeekId}</p>
@@ -574,18 +765,171 @@
                             <div className="bg-white rounded-lg shadow-md p-6">
                                 <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
                                     <h2 className="text-2xl font-bold text-gray-800">Mis Recetas ({recipes.length})</h2>
-                                    <button
-                                        onClick={() => {
-                                            setShowRecipeForm(true);
-                                            setEditingRecipe(null);
-                                            setNewRecipe({ nombre: '', temporada: 'all', tipo: 'batch', raciones: 3, ingredientes: [] });
-                                        }}
-                                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-                                    >
-                                        <PlusIcon />
-                                        Nueva Receta
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setShowImportModal(true)}
+                                            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                                        >
+                                            <SparklesIcon />
+                                            Importar con IA
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowRecipeForm(true);
+                                                setEditingRecipe(null);
+                                                setNewRecipe({ nombre: '', temporada: 'all', tipo: 'batch', raciones: 3, ingredientes: [] });
+                                            }}
+                                            className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                                        >
+                                            <PlusIcon />
+                                            Nueva Receta
+                                        </button>
+                                    </div>
                                 </div>
+
+                                {showImportModal && (
+                                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                                        <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+                                            <h3 className="text-2xl font-bold mb-4">Importar Receta con IA</h3>
+                                            
+                                            {!importType && !importedRecipe && (
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    <button
+                                                        onClick={() => setImportType('photo')}
+                                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition"
+                                                    >
+                                                        <div className="flex justify-center mb-2"><PhotoIcon /></div>
+                                                        <div className="mt-2 font-semibold">Subir Foto</div>
+                                                        <div className="text-sm text-gray-600 mt-1">De una receta</div>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setImportType('url')}
+                                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition"
+                                                    >
+                                                        <div className="flex justify-center mb-2"><LinkIcon /></div>
+                                                        <div className="mt-2 font-semibold">URL Web</div>
+                                                        <div className="text-sm text-gray-600 mt-1">De cualquier sitio</div>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setImportType('text')}
+                                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition"
+                                                    >
+                                                        <div className="flex justify-center mb-2"><DocumentTextIcon /></div>
+                                                        <div className="mt-2 font-semibold">Descripción</div>
+                                                        <div className="text-sm text-gray-600 mt-1">Escribe la receta</div>
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {importType === 'photo' && !importedRecipe && (
+                                                <div>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            if (e.target.files[0]) {
+                                                                importRecipeFromImage(e.target.files[0]);
+                                                            }
+                                                        }}
+                                                        className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {importType === 'url' && !importedRecipe && (
+                                                <div>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="https://ejemplo.com/receta"
+                                                        value={importData}
+                                                        onChange={(e) => setImportData(e.target.value)}
+                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+                                                    />
+                                                    <button
+                                                        onClick={importRecipeWithAI}
+                                                        disabled={!importData || importLoading}
+                                                        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300"
+                                                    >
+                                                        {importLoading ? 'Procesando...' : 'Importar'}
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {importType === 'text' && !importedRecipe && (
+                                                <div>
+                                                    <textarea
+                                                        placeholder="Describe la receta o pega el texto..."
+                                                        value={importData}
+                                                        onChange={(e) => setImportData(e.target.value)}
+                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 h-40"
+                                                    />
+                                                    <button
+                                                        onClick={importRecipeWithAI}
+                                                        disabled={!importData || importLoading}
+                                                        className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300"
+                                                    >
+                                                        {importLoading ? 'Procesando...' : 'Importar'}
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {importLoading && (
+                                                <div className="text-center py-8">
+                                                    <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                                    <p className="text-gray-600">Analizando con IA...</p>
+                                                </div>
+                                            )}
+
+                                            {importedRecipe && (
+                                                <div>
+                                                    <h4 className="font-bold text-lg mb-4">Vista Previa de la Receta</h4>
+                                                    <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                                                        <div className="font-semibold text-xl mb-2">{importedRecipe.nombre}</div>
+                                                        <div className="text-sm text-gray-600 mb-4">
+                                                            {importedRecipe.temporada} · {importedRecipe.tipo} · {importedRecipe.raciones} raciones
+                                                        </div>
+                                                        <div className="text-sm">
+                                                            <strong>Ingredientes:</strong>
+                                                            <ul className="mt-2 space-y-1">
+                                                                {importedRecipe.ingredientes.map((ing, idx) => (
+                                                                    <li key={idx}>
+                                                                        {ing.name}: {ing.amount} {ing.unit} ({ing.category})
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={saveImportedRecipe}
+                                                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                                        >
+                                                            Guardar Receta
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setImportedRecipe(null)}
+                                                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                                                        >
+                                                            Editar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <button
+                                                onClick={() => {
+                                                    setShowImportModal(false);
+                                                    setImportType('');
+                                                    setImportData('');
+                                                    setImportedRecipe(null);
+                                                }}
+                                                className="mt-4 w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                                            >
+                                                Cerrar
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {showRecipeForm && (
                                     <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
