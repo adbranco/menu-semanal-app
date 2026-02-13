@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planificador de Menús</title>
+    <title>Planificador de Menús Semanal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <div id="root"></div>
@@ -21,6 +20,67 @@
         const supabaseClient = createClient(
             'https://onqdchjbxpqzydfbimpj.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ucWRjaGpieHBxenlkZmJpbXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDM3NTksImV4cCI6MjA4NjU3OTc1OX0.9Kh_bD1suRC-b0WmwdWBxPCCL3xd4EIsN2buFR5DI5M'
+        );
+
+        // Iconos simples con SVG
+        const ChefHatIcon = () => (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+        );
+
+        const CalendarIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        );
+
+        const ShoppingCartIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+        );
+
+        const HistoryIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+
+        const PlusIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+        );
+
+        const EditIcon = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+        );
+
+        const TrashIcon = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        );
+
+        const DownloadIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+        );
+
+        const UsersIcon = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+        );
+
+        const CopyIcon = () => (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
         );
 
         const MealPlannerApp = () => {
@@ -191,7 +251,7 @@
             };
 
             const exportToCalendar = () => {
-                let icsContent = 'BEGIN:VCALENDAR\\nVERSION:2.0\\nPRODID:-//Meal Planner//ES\\n';
+                let icsContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Meal Planner//ES\n';
                 
                 days.forEach((day, index) => {
                     const date = new Date();
@@ -204,11 +264,11 @@
                             const recipe = recipes.find(r => r.id === mealData.recipe);
                             if (recipe) {
                                 const time = meal === 'lunch' ? '140000' : '210000';
-                                icsContent += 'BEGIN:VEVENT\\n';
-                                icsContent += 'DTSTART:' + dateStr + 'T' + time + '\\n';
-                                icsContent += 'SUMMARY:' + (meal === 'lunch' ? 'Comida' : 'Cena') + ': ' + recipe.nombre + '\\n';
-                                icsContent += 'DESCRIPTION:' + mealData.diners + ' personas\\n';
-                                icsContent += 'END:VEVENT\\n';
+                                icsContent += 'BEGIN:VEVENT\n';
+                                icsContent += 'DTSTART:' + dateStr + 'T' + time + '\n';
+                                icsContent += 'SUMMARY:' + (meal === 'lunch' ? 'Comida' : 'Cena') + ': ' + recipe.nombre + '\n';
+                                icsContent += 'DESCRIPTION:' + mealData.diners + ' personas\n';
+                                icsContent += 'END:VEVENT\n';
                             }
                         }
                     });
@@ -317,157 +377,509 @@
             return (
                 <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 p-4">
                     <div className="max-w-7xl mx-auto">
-                        {/* RESTO DEL CÓDIGO CONTINÚA... */}
-                        <div className="bg-white rounded-lg shadow-md p-6">
-                            <h1 className="text-3xl font-bold text-gray-800 mb-4">Planificador de Menús Semanal</h1>
-                            <p className="text-gray-600 mb-6">Semana {currentWeekId} · {recipes.length} recetas · Guardado en Supabase</p>
-                            
-                            <div className="mb-6">
-                                <button
-                                    onClick={() => setShowRecipeForm(true)}
-                                    className="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 font-semibold"
-                                >
-                                    + Nueva Receta
-                                </button>
-                            </div>
-
-                            {showRecipeForm && (
-                                <div className="mb-6 p-6 border-2 border-orange-200 rounded-lg bg-orange-50">
-                                    <h3 className="text-xl font-bold mb-4">Nueva Receta</h3>
-                                    <input
-                                        type="text"
-                                        placeholder="Nombre de la receta"
-                                        value={newRecipe.nombre}
-                                        onChange={(e) => setNewRecipe({ ...newRecipe, nombre: e.target.value })}
-                                        className="w-full px-4 py-2 border rounded-lg mb-4"
-                                    />
-                                    <div className="grid grid-cols-3 gap-4 mb-4">
-                                        <select
-                                            value={newRecipe.temporada}
-                                            onChange={(e) => setNewRecipe({ ...newRecipe, temporada: e.target.value })}
-                                            className="px-4 py-2 border rounded-lg"
-                                        >
-                                            <option value="all">Todo el año</option>
-                                            <option value="verano">Verano</option>
-                                            <option value="invierno">Invierno</option>
-                                        </select>
-                                        <select
-                                            value={newRecipe.tipo}
-                                            onChange={(e) => setNewRecipe({ ...newRecipe, tipo: e.target.value })}
-                                            className="px-4 py-2 border rounded-lg"
-                                        >
-                                            <option value="batch">Batch Cooking</option>
-                                            <option value="momento">Al momento</option>
-                                        </select>
-                                        <input
-                                            type="number"
-                                            value={newRecipe.raciones}
-                                            onChange={(e) => setNewRecipe({ ...newRecipe, raciones: parseInt(e.target.value) })}
-                                            className="px-4 py-2 border rounded-lg"
-                                            placeholder="Raciones"
-                                        />
-                                    </div>
-
-                                    <h4 className="font-semibold mb-2">Ingredientes:</h4>
-                                    {newRecipe.ingredientes.map((ing, idx) => (
-                                        <div key={idx} className="grid grid-cols-5 gap-2 mb-2">
-                                            <input
-                                                type="text"
-                                                placeholder="Ingrediente"
-                                                value={ing.name}
-                                                onChange={(e) => {
-                                                    const newIngs = [...newRecipe.ingredientes];
-                                                    newIngs[idx].name = e.target.value;
-                                                    setNewRecipe({ ...newRecipe, ingredientes: newIngs });
-                                                }}
-                                                className="col-span-2 px-3 py-2 border rounded"
-                                            />
-                                            <input
-                                                type="number"
-                                                placeholder="Cantidad"
-                                                value={ing.amount}
-                                                onChange={(e) => {
-                                                    const newIngs = [...newRecipe.ingredientes];
-                                                    newIngs[idx].amount = parseFloat(e.target.value);
-                                                    setNewRecipe({ ...newRecipe, ingredientes: newIngs });
-                                                }}
-                                                className="px-3 py-2 border rounded"
-                                            />
-                                            <select
-                                                value={ing.unit}
-                                                onChange={(e) => {
-                                                    const newIngs = [...newRecipe.ingredientes];
-                                                    newIngs[idx].unit = e.target.value;
-                                                    setNewRecipe({ ...newRecipe, ingredientes: newIngs });
-                                                }}
-                                                className="px-3 py-2 border rounded"
-                                            >
-                                                <option value="g">g</option>
-                                                <option value="kg">kg</option>
-                                                <option value="ml">ml</option>
-                                                <option value="l">l</option>
-                                                <option value="unidad">unidad</option>
-                                            </select>
-                                            <select
-                                                value={ing.category}
-                                                onChange={(e) => {
-                                                    const newIngs = [...newRecipe.ingredientes];
-                                                    newIngs[idx].category = e.target.value;
-                                                    setNewRecipe({ ...newRecipe, ingredientes: newIngs });
-                                                }}
-                                                className="px-3 py-2 border rounded"
-                                            >
-                                                <option value="frescos">Frescos</option>
-                                                <option value="proteinas">Proteínas</option>
-                                                <option value="despensa">Despensa</option>
-                                            </select>
-                                        </div>
-                                    ))}
-                                    <button
-                                        onClick={addIngredientToNewRecipe}
-                                        className="text-orange-600 mb-4"
-                                    >
-                                        + Añadir ingrediente
-                                    </button>
-
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={saveRecipe}
-                                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                                        >
-                                            Guardar
-                                        </button>
-                                        <button
-                                            onClick={() => setShowRecipeForm(false)}
-                                            className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg"
-                                        >
-                                            Cancelar
-                                        </button>
+                        <header className="bg-white rounded-lg shadow-md p-6 mb-6">
+                            <div className="flex items-center justify-between flex-wrap gap-4">
+                                <div className="flex items-center gap-3">
+                                    <ChefHatIcon />
+                                    <div>
+                                        <h1 className="text-3xl font-bold text-gray-800">Planificador de Menús</h1>
+                                        <p className="text-gray-600">Organiza tu semana con batch cooking · Semana {currentWeekId}</p>
                                     </div>
                                 </div>
+                                <div className="flex gap-2 items-center">
+                                    {saving && <span className="text-sm text-gray-500">Guardando...</span>}
+                                    <select 
+                                        value={season} 
+                                        onChange={(e) => setSeason(e.target.value)}
+                                        className="px-4 py-2 rounded-lg border border-gray-300 bg-white"
+                                    >
+                                        <option value="verano">🌞 Primavera/Verano</option>
+                                        <option value="invierno">❄️ Otoño/Invierno</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            {lastYearWeek && (
+                                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between flex-wrap gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <HistoryIcon />
+                                        <span className="text-sm text-blue-800">
+                                            💡 Hace un año: {Object.values(lastYearWeek.plan).slice(0, 3).map(day => {
+                                                const recipe = recipes.find(r => r.id === day.lunch.recipe);
+                                                return recipe ? recipe.nombre : null;
+                                            }).filter(Boolean).join(', ')}...
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => loadWeekFromHistory(lastYearWeek)}
+                                        className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    >
+                                        Usar este menú
+                                    </button>
+                                </div>
                             )}
+                        </header>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {recipes.map(recipe => (
-                                    <div key={recipe.id} className="border rounded-lg p-4">
-                                        <div className="flex justify-between">
-                                            <div>
-                                                <h3 className="font-bold text-lg">{recipe.nombre}</h3>
-                                                <p className="text-sm text-gray-600">
-                                                    {recipe.temporada} · {recipe.tipo} · {recipe.raciones} pers.
-                                                </p>
+                        <div className="flex gap-4 mb-6 flex-wrap">
+                            <button
+                                onClick={() => setActiveTab('planner')}
+                                className={'flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition ' + 
+                                    (activeTab === 'planner' ? 'bg-orange-600 text-white' : 'bg-white text-gray-700 hover:bg-orange-100')}
+                            >
+                                <CalendarIcon />
+                                Planificador
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('recipes')}
+                                className={'flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition ' +
+                                    (activeTab === 'recipes' ? 'bg-orange-600 text-white' : 'bg-white text-gray-700 hover:bg-orange-100')}
+                            >
+                                <ChefHatIcon />
+                                Recetas ({recipes.length})
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('shopping')}
+                                className={'flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition ' +
+                                    (activeTab === 'shopping' ? 'bg-orange-600 text-white' : 'bg-white text-gray-700 hover:bg-orange-100')}
+                            >
+                                <ShoppingCartIcon />
+                                Lista de Compra
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('history')}
+                                className={'flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition ' +
+                                    (activeTab === 'history' ? 'bg-orange-600 text-white' : 'bg-white text-gray-700 hover:bg-orange-100')}
+                            >
+                                <HistoryIcon />
+                                Histórico
+                            </button>
+                        </div>
+
+                        {activeTab === 'planner' && (
+                            <div className="bg-white rounded-lg shadow-md p-6">
+                                <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+                                    <h2 className="text-2xl font-bold text-gray-800">Menú Semanal</h2>
+                                    <button
+                                        onClick={exportToCalendar}
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                    >
+                                        <DownloadIcon />
+                                        Exportar a Calendar
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    {days.map(day => (
+                                        <div key={day} className="border border-gray-200 rounded-lg p-4">
+                                            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                                                <h3 className="text-lg font-bold text-gray-800">{dayNames[day]}</h3>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Notas (ej: comer fuera)"
+                                                    value={weekPlan[day].special}
+                                                    onChange={(e) => setWeekPlan({
+                                                        ...weekPlan,
+                                                        [day]: { ...weekPlan[day], special: e.target.value }
+                                                    })}
+                                                    className="px-3 py-1 border border-gray-300 rounded text-sm"
+                                                />
                                             </div>
-                                            <button
-                                                onClick={() => deleteRecipe(recipe.id)}
-                                                className="text-red-600 hover:text-red-800"
-                                            >
-                                                Eliminar
-                                            </button>
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="border-l-4 border-amber-500 pl-3">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="font-semibold text-gray-700">🍽️ Comida</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <UsersIcon />
+                                                            <input
+                                                                type="number"
+                                                                value={weekPlan[day].lunch.diners}
+                                                                onChange={(e) => setWeekPlan({
+                                                                    ...weekPlan,
+                                                                    [day]: {
+                                                                        ...weekPlan[day],
+                                                                        lunch: { ...weekPlan[day].lunch, diners: parseInt(e.target.value) }
+                                                                    }
+                                                                })}
+                                                                className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <select
+                                                        value={weekPlan[day].lunch.recipe || ''}
+                                                        onChange={(e) => setWeekPlan({
+                                                            ...weekPlan,
+                                                            [day]: {
+                                                                ...weekPlan[day],
+                                                                lunch: { ...weekPlan[day].lunch, recipe: parseInt(e.target.value) || null }
+                                                            }
+                                                        })}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded"
+                                                    >
+                                                        <option value="">Seleccionar receta...</option>
+                                                        {filteredRecipes.map(recipe => (
+                                                            <option key={recipe.id} value={recipe.id}>
+                                                                {recipe.nombre} {recipe.tipo === 'batch' && '🔄'}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                
+                                                <div className="border-l-4 border-blue-500 pl-3">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="font-semibold text-gray-700">🌙 Cena</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <UsersIcon />
+                                                            <input
+                                                                type="number"
+                                                                value={weekPlan[day].dinner.diners}
+                                                                onChange={(e) => setWeekPlan({
+                                                                    ...weekPlan,
+                                                                    [day]: {
+                                                                        ...weekPlan[day],
+                                                                        dinner: { ...weekPlan[day].dinner, diners: parseInt(e.target.value) }
+                                                                    }
+                                                                })}
+                                                                className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <select
+                                                        value={weekPlan[day].dinner.recipe || ''}
+                                                        onChange={(e) => setWeekPlan({
+                                                            ...weekPlan,
+                                                            [day]: {
+                                                                ...weekPlan[day],
+                                                                dinner: { ...weekPlan[day].dinner, recipe: parseInt(e.target.value) || null }
+                                                            }
+                                                        })}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded"
+                                                    >
+                                                        <option value="">Seleccionar receta...</option>
+                                                        {filteredRecipes.map(recipe => (
+                                                            <option key={recipe.id} value={recipe.id}>
+                                                                {recipe.nombre} {recipe.tipo === 'batch' && '🔄'}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'recipes' && (
+                            <div className="bg-white rounded-lg shadow-md p-6">
+                                <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+                                    <h2 className="text-2xl font-bold text-gray-800">Mis Recetas ({recipes.length})</h2>
+                                    <button
+                                        onClick={() => {
+                                            setShowRecipeForm(true);
+                                            setEditingRecipe(null);
+                                            setNewRecipe({ nombre: '', temporada: 'all', tipo: 'batch', raciones: 3, ingredientes: [] });
+                                        }}
+                                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                                    >
+                                        <PlusIcon />
+                                        Nueva Receta
+                                    </button>
+                                </div>
+
+                                {showRecipeForm && (
+                                    <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
+                                        <h3 className="text-lg font-bold mb-4">{editingRecipe ? 'Editar' : 'Nueva'} Receta</h3>
+                                        
+                                        <div className="space-y-4">
+                                            <input
+                                                type="text"
+                                                placeholder="Nombre de la receta"
+                                                value={newRecipe.nombre}
+                                                onChange={(e) => setNewRecipe({ ...newRecipe, nombre: e.target.value })}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                                            />
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <select
+                                                    value={newRecipe.temporada}
+                                                    onChange={(e) => setNewRecipe({ ...newRecipe, temporada: e.target.value })}
+                                                    className="px-4 py-2 border border-gray-300 rounded-lg"
+                                                >
+                                                    <option value="all">Todo el año</option>
+                                                    <option value="verano">Primavera/Verano</option>
+                                                    <option value="invierno">Otoño/Invierno</option>
+                                                </select>
+                                                
+                                                <select
+                                                    value={newRecipe.tipo}
+                                                    onChange={(e) => setNewRecipe({ ...newRecipe, tipo: e.target.value })}
+                                                    className="px-4 py-2 border border-gray-300 rounded-lg"
+                                                >
+                                                    <option value="batch">Batch Cooking</option>
+                                                    <option value="momento">Al momento</option>
+                                                </select>
+                                                
+                                                <input
+                                                    type="number"
+                                                    placeholder="Raciones"
+                                                    value={newRecipe.raciones}
+                                                    onChange={(e) => setNewRecipe({ ...newRecipe, raciones: parseInt(e.target.value) })}
+                                                    className="px-4 py-2 border border-gray-300 rounded-lg"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <h4 className="font-semibold">Ingredientes</h4>
+                                                    <button
+                                                        onClick={addIngredientToNewRecipe}
+                                                        className="text-sm text-orange-600 hover:text-orange-700"
+                                                    >
+                                                        + Añadir ingrediente
+                                                    </button>
+                                                </div>
+                                                
+                                                {newRecipe.ingredientes.map((ing, idx) => (
+                                                    <div key={idx} className="grid grid-cols-5 gap-2 mb-2">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Ingrediente"
+                                                            value={ing.name}
+                                                            onChange={(e) => {
+                                                                const newIngs = [...newRecipe.ingredientes];
+                                                                newIngs[idx].name = e.target.value;
+                                                                setNewRecipe({ ...newRecipe, ingredientes: newIngs });
+                                                            }}
+                                                            className="col-span-2 px-3 py-2 border border-gray-300 rounded"
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            placeholder="Cantidad"
+                                                            value={ing.amount}
+                                                            onChange={(e) => {
+                                                                const newIngs = [...newRecipe.ingredientes];
+                                                                newIngs[idx].amount = parseFloat(e.target.value);
+                                                                setNewRecipe({ ...newRecipe, ingredientes: newIngs });
+                                                            }}
+                                                            className="px-3 py-2 border border-gray-300 rounded"
+                                                        />
+                                                        <select
+                                                            value={ing.unit}
+                                                            onChange={(e) => {
+                                                                const newIngs = [...newRecipe.ingredientes];
+                                                                newIngs[idx].unit = e.target.value;
+                                                                setNewRecipe({ ...newRecipe, ingredientes: newIngs });
+                                                            }}
+                                                            className="px-3 py-2 border border-gray-300 rounded"
+                                                        >
+                                                            <option value="g">g</option>
+                                                            <option value="kg">kg</option>
+                                                            <option value="ml">ml</option>
+                                                            <option value="l">l</option>
+                                                            <option value="unidad">unidad</option>
+                                                            <option value="dientes">dientes</option>
+                                                            <option value="lata">lata</option>
+                                                            <option value="manojo">manojo</option>
+                                                            <option value="lonchas">lonchas</option>
+                                                            <option value="pizca">pizca</option>
+                                                            <option value="cucharada">cucharada</option>
+                                                        </select>
+                                                        <select
+                                                            value={ing.category}
+                                                            onChange={(e) => {
+                                                                const newIngs = [...newRecipe.ingredientes];
+                                                                newIngs[idx].category = e.target.value;
+                                                                setNewRecipe({ ...newRecipe, ingredientes: newIngs });
+                                                            }}
+                                                            className="px-3 py-2 border border-gray-300 rounded"
+                                                        >
+                                                            <option value="frescos">Frescos</option>
+                                                            <option value="proteinas">Proteínas</option>
+                                                            <option value="despensa">Despensa</option>
+                                                        </select>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={saveRecipe}
+                                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                                >
+                                                    Guardar
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setShowRecipeForm(false);
+                                                        setEditingRecipe(null);
+                                                    }}
+                                                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                ))}
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {recipes.map(recipe => (
+                                        <div key={recipe.id} className="border border-gray-200 rounded-lg p-4">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <h3 className="font-bold text-lg">{recipe.nombre}</h3>
+                                                    <div className="flex gap-2 mt-1 flex-wrap">
+                                                        <span className="text-xs px-2 py-1 bg-gray-100 rounded">
+                                                            {recipe.temporada === 'all' ? '🌍 Todo el año' : recipe.temporada === 'verano' ? '☀️ Verano' : '❄️ Invierno'}
+                                                        </span>
+                                                        <span className="text-xs px-2 py-1 bg-gray-100 rounded">
+                                                            {recipe.tipo === 'batch' ? '🔄 Batch' : '⚡ Al momento'}
+                                                        </span>
+                                                        <span className="text-xs px-2 py-1 bg-gray-100 rounded">
+                                                            👥 {recipe.raciones} pers.
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingRecipe(recipe);
+                                                            setNewRecipe({
+                                                                nombre: recipe.nombre,
+                                                                temporada: recipe.temporada,
+                                                                tipo: recipe.tipo,
+                                                                raciones: recipe.raciones,
+                                                                ingredientes: recipe.ingredientes
+                                                            });
+                                                            setShowRecipeForm(true);
+                                                        }}
+                                                        className="text-blue-600 hover:text-blue-700"
+                                                    >
+                                                        <EditIcon />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => deleteRecipe(recipe.id)}
+                                                        className="text-red-600 hover:text-red-700"
+                                                    >
+                                                        <TrashIcon />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="text-sm text-gray-600">
+                                                <strong>Ingredientes:</strong> {recipe.ingredientes.map(i => i.name).join(', ')}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
+
+                        {activeTab === 'shopping' && (
+                            <div className="bg-white rounded-lg shadow-md p-6">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-6">Lista de la Compra</h2>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="border-2 border-green-200 rounded-lg p-4 bg-green-50">
+                                        <h3 className="text-lg font-bold text-green-800 mb-3">
+                                            🥬 Frescos (WhatsApp)
+                                        </h3>
+                                        <ul className="space-y-2">
+                                            {Object.entries(shoppingList.frescos).map(([item, amount]) => (
+                                                <li key={item} className="text-sm">
+                                                    <strong>{item}:</strong> {Math.ceil(amount)}
+                                                </li>
+                                            ))}
+                                            {Object.keys(shoppingList.frescos).length === 0 && (
+                                                <li className="text-sm text-gray-500">No hay frescos esta semana</li>
+                                            )}
+                                        </ul>
+                                    </div>
+
+                                    <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                                        <h3 className="text-lg font-bold text-red-800 mb-3">
+                                            🥩 Proteínas (Teléfono)
+                                        </h3>
+                                        <ul className="space-y-2">
+                                            {Object.entries(shoppingList.proteinas).map(([item, amount]) => (
+                                                <li key={item} className="text-sm">
+                                                    <strong>{item}:</strong> {Math.ceil(amount)}
+                                                </li>
+                                            ))}
+                                            {Object.keys(shoppingList.proteinas).length === 0 && (
+                                                <li className="text-sm text-gray-500">No hay proteínas esta semana</li>
+                                            )}
+                                        </ul>
+                                    </div>
+
+                                    <div className="border-2 border-amber-200 rounded-lg p-4 bg-amber-50">
+                                        <h3 className="text-lg font-bold text-amber-800 mb-3">
+                                            🏪 Despensa (Online)
+                                        </h3>
+                                        <ul className="space-y-2">
+                                            {Object.entries(shoppingList.despensa).map(([item, amount]) => (
+                                                <li key={item} className="text-sm">
+                                                    <strong>{item}:</strong> {Math.ceil(amount)}
+                                                </li>
+                                            ))}
+                                            {Object.keys(shoppingList.despensa).length === 0 && (
+                                                <li className="text-sm text-gray-500">No hay despensa esta semana</li>
+                                            )}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'history' && (
+                            <div className="bg-white rounded-lg shadow-md p-6">
+                                <h2 className="text-2xl font-bold text-gray-800 mb-6">Histórico de Menús</h2>
+                                
+                                {weekHistory.length === 0 ? (
+                                    <p className="text-gray-500 text-center py-8">Aún no hay menús guardados en el histórico</p>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {weekHistory.map(week => (
+                                            <div key={week.weekId} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                                                <div className="flex justify-between items-start mb-3 flex-wrap gap-2">
+                                                    <div>
+                                                        <h3 className="font-bold text-lg">Semana {week.weekId}</h3>
+                                                        <p className="text-sm text-gray-500">
+                                                            Guardado: {new Date(week.date).toLocaleDateString('es-ES')}
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => loadWeekFromHistory(week)}
+                                                        className="flex items-center gap-2 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm"
+                                                    >
+                                                        <CopyIcon />
+                                                        Usar este menú
+                                                    </button>
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-2 md:grid-cols-7 gap-2 text-xs">
+                                                    {days.map(day => {
+                                                        const lunchRecipe = recipes.find(r => r.id === week.plan[day].lunch.recipe);
+                                                        const dinnerRecipe = recipes.find(r => r.id === week.plan[day].dinner.recipe);
+                                                        return (
+                                                            <div key={day} className="border border-gray-100 rounded p-2">
+                                                                <div className="font-semibold mb-1">{dayNames[day].slice(0, 3)}</div>
+                                                                <div className="text-gray-600">
+                                                                    {lunchRecipe ? '🍽️ ' + lunchRecipe.nombre.slice(0, 12) + '...' : '—'}
+                                                                </div>
+                                                                <div className="text-gray-600 mt-1">
+                                                                    {dinnerRecipe ? '🌙 ' + dinnerRecipe.nombre.slice(0, 12) + '...' : '—'}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             );
