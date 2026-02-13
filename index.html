@@ -18,7 +18,7 @@
         const { useState, useEffect } = React;
         const { createClient } = supabase;
 
-        const ANTHROPIC_API_KEY = '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';
+        const ANTHROPIC_API_KEY = window.ENV?.ANTHROPIC_API_KEY || '';
 
         const supabaseClient = createClient(
             'https://onqdchjbxpqzydfbimpj.supabase.co',
