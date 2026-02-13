@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planificador de Menús</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createClient } = supabase;
+
+        const supabaseClient = createClient(
+            'https://onqdchjbxpqzydfbimpj.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ucWRjaGpieHBxenlkZmJpbXBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk0NzU3NzcsImV4cCI6MjA1NTA1MTc3N30.QjAai-GcQUxzLHSXlQNiEw_Ip_4xQhT'
+        );
+
+        const MealPlannerApp = () => {
+            const [activeTab, setActiveTab] = useState('planner');
+            const [recipes, setRecipes] = useState([]);
+            const [weekPlan, setWeekPlan] = useState({
+                monday: { lunch: { recipe: null, diners: 3 }, dinner: { recipe: null, diners: 5 }, special: '' },
+                tuesday: { lunch: { recipe: null, diners: 3 }, dinner: { recipe: null, diners: 5 }, special: '' },
+                wednesday: { lunch: { recipe: null, diners: 3 }, dinner: { recipe: null, diners: 5 }, special: '' },
+                thursday: { lunch: { recipe: null, diners: 3 }, dinner: { recipe: null, diners: 5 }, special: '' },
+                friday: { lunch: { recipe: null, diners: 3 }, dinner: { recipe: null, diners: 5 }, special: '' },
+                saturday: { lunch: { recipe: null, diners: 5 }, dinner: { recipe: null, diners: 5 }, special: '' },
+                sunday: { lunch: { recipe: null, diners: 5 }, dinner: { recipe: null, diners: 5 }, special: '' }
+            });
+            const [currentWeekId, setCurrentWeekId] = useState('');
+            const [weekHistory, setWeekHistory] = useState([]);
+            const [season, setSeason] = useState('invierno');
+            const [showRecipeForm, setShowRecipeForm] = useState(false);
+            const [editingRecipe, setEditingRecipe] = useState(null);
+            const [newRecipe, setNewRecipe] = useState({
+                nombre: '',
+                temporada: 'all',
+                tipo: 'batch',
+                raciones: 3,
+                ingredientes: []
+            });
+            const [loading, setLoading] = useState(true);
+            const [saving, setSaving] = useState(false);
+
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+            const dayNames = {
+                monday: 'Lunes',
+                tuesday: 'Martes',
+                wednesday: 'Miércoles',
+                thursday: 'Jueves',
+                friday: 'Viernes',
+                saturday: 'Sábado',
+                sunday: 'Domingo'
+            };
+
+            function getWeekId(date) {
+                const d = new Date(date);
+                d.setHours(0, 0, 0, 0);
+                d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+                const yearStart = new Date(d.getFullYear(), 0, 1);
+                const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+                return d.getFullYear() + '-W' + weekNo.toString().padStart(2, '0');
+            }
+
+            useEffect(() => {
+                const init = async () => {
+                    const weekId = getWeekId(new Date());
+                    setCurrentWeekId(weekId);
+                    await loadData(weekId);
+                };
+                init();
+            }, []);
+
+            async function loadData(weekId) {
+                setLoading(true);
+                try {
+                    const { data: recipesData, error: recipesError } = await supabaseClient
+                        .from('recipes')
+                        .select('*')
+                        .order('id', { ascending: true });
+
+                    if (recipesError) throw recipesError;
+                    setRecipes(recipesData || []);
+
+                    const { data: menuData, error: menuError } = await supabaseClient
+                        .from('weekly_menus')
+                        .select('*')
+                        .eq('week_id', weekId)
+                        .single();
+
+                    if (menuData && !menuError) {
+                        setWeekPlan(menuData.plan);
+                    }
+
+                    const { data: historyData, error: historyError } = await supabaseClient
+                        .from('weekly_menus')
+                        .select('*')
+                        .order('week_id', { ascending: false })
+                        .limit(52);
+
+                    if (historyData && !historyError) {
+                        setWeekHistory(historyData.map(item => ({
+                            weekId: item.week_id,
+                            date: item.updated_at,
+                            plan: item.plan
+                        })));
+                    }
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    alert('Error al cargar datos: ' + error.message);
+                }
+                setLoading(false);
+            }
+
+            async function saveCurrentWeek() {
+                if (!currentWeekId) return;
+                setSaving(true);
+                try {
+                    const { error } = await supabaseClient
+                        .from('weekly_menus')
+                        .upsert({
+                            week_id: currentWeekId,
+                            plan: weekPlan,
+                            updated_at: new Date().toISOString()
+                        }, {
+                            onConflict: 'week_id'
+                        });
+
+                    if (error) throw error;
+
+                    const { data: historyData } = await supabaseClient
+                        .from('weekly_menus')
+                        .select('*')
+                        .order('week_id', { ascending: false })
+                        .limit(52);
+
+                    if (historyData) {
+                        setWeekHistory(historyData.map(item => ({
+                            weekId: item.week_id,
+                            date: item.updated_at,
+                            plan: item.plan
+                        })));
+                    }
+                } catch (error) {
+                    console.error('Error saving week:', error);
+                }
+                setSaving(false);
+            }
+
+            useEffect(() => {
+                if (!loading && currentWeekId) {
+                    const timer = setTimeout(() => {
+                        saveCurrentWeek();
+                    }, 1000);
+                    return () => clearTimeout(timer);
+                }
+            }, [weekPlan, currentWeekId, loading]);
+
+            const generateShoppingList = () => {
+                const list = { frescos: {}, proteinas: {}, despensa: {} };
+                
+                days.forEach(day => {
+                    ['lunch', 'dinner'].forEach(meal => {
+                        const mealData = weekPlan[day][meal];
+                        if (mealData.recipe) {
+                            const recipe = recipes.find(r => r.id === mealData.recipe);
+                            if (recipe) {
+                                const scale = mealData.diners / recipe.raciones;
+                                recipe.ingredientes.forEach(ing => {
+                                    const category = ing.category;
+                                    const key = ing.name + ' (' + ing.unit + ')';
+                                    if (!list[category][key]) {
+                                        list[category][key] = 0;
+                                    }
+                                    list[category][key] += ing.amount * scale;
+                                });
+                            }
+                        }
+                    });
+                });
+
+                return list;
+            };
+
+            const exportToCalendar = () => {
+                let icsContent = 'BEGIN:VCALENDAR\\nVERSION:2.0\\nPRODID:-//Meal Planner//ES\\n';
+                
+                days.forEach((day, index) => {
+                    const date = new Date();
+                    date.setDate(date.getDate() + index);
+                    const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
+                    
+                    ['lunch', 'dinner'].forEach(meal => {
+                        const mealData = weekPlan[day][meal];
+                        if (mealData.recipe) {
+                            const recipe = recipes.find(r => r.id === mealData.recipe);
+                            if (recipe) {
+                                const time = meal === 'lunch' ? '140000' : '210000';
+                                icsContent += 'BEGIN:VEVENT\\n';
+                                icsContent += 'DTSTART:' + dateStr + 'T' + time + '\\n';
+                                icsContent += 'SUMMARY:' + (meal === 'lunch' ? 'Comida' : 'Cena') + ': ' + recipe.nombre + '\\n';
+                                icsContent += 'DESCRIPTION:' + mealData.diners + ' personas\\n';
+                                icsContent += 'END:VEVENT\\n';
+                            }
+                        }
+                    });
+                });
+                
+                icsContent += 'END:VCALENDAR';
+                
+                const blob = new Blob([icsContent], { type: 'text/calendar' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'menu-semanal.ics';
+                a.click();
+            };
+
+            const addIngredientToNewRecipe = () => {
+                setNewRecipe({
+                    ...newRecipe,
+                    ingredientes: [...newRecipe.ingredientes, { name: '', amount: 0, unit: 'g', category: 'frescos' }]
+                });
+            };
+
+            const saveRecipe = async () => {
+                try {
+                    if (editingRecipe) {
+                        const { error } = await supabaseClient
+                            .from('recipes')
+                            .update({
+                                nombre: newRecipe.nombre,
+                                temporada: newRecipe.temporada,
+                                tipo: newRecipe.tipo,
+                                raciones: newRecipe.raciones,
+                                ingredientes: newRecipe.ingredientes
+                            })
+                            .eq('id', editingRecipe.id);
+
+                        if (error) throw error;
+                    } else {
+                        const { error } = await supabaseClient
+                            .from('recipes')
+                            .insert([{
+                                nombre: newRecipe.nombre,
+                                temporada: newRecipe.temporada,
+                                tipo: newRecipe.tipo,
+                                raciones: newRecipe.raciones,
+                                ingredientes: newRecipe.ingredientes
+                            }]);
+
+                        if (error) throw error;
+                    }
+
+                    await loadData(currentWeekId);
+                    setShowRecipeForm(false);
+                    setEditingRecipe(null);
+                    setNewRecipe({ nombre: '', temporada: 'all', tipo: 'batch', raciones: 3, ingredientes: [] });
+                } catch (error) {
+                    console.error('Error saving recipe:', error);
+                    alert('Error al guardar receta: ' + error.message);
+                }
+            };
+
+            const deleteRecipe = async (id) => {
+                if (confirm('¿Eliminar esta receta?')) {
+                    try {
+                        const { error } = await supabaseClient
+                            .from('recipes')
+                            .delete()
+                            .eq('id', id);
+
+                        if (error) throw error;
+                        await loadData(currentWeekId);
+                    } catch (error) {
+                        console.error('Error deleting recipe:', error);
+                        alert('Error al eliminar receta: ' + error.message);
+                    }
+                }
+            };
+
+            const loadWeekFromHistory = (historyWeek) => {
+                if (confirm('¿Cargar el menú de la semana ' + historyWeek.weekId + '?')) {
+                    setWeekPlan(historyWeek.plan);
+                }
+            };
+
+            const getLastYearWeek = () => {
+                const date = new Date();
+                date.setFullYear(date.getFullYear() - 1);
+                return getWeekId(date);
+            };
+
+            const lastYearWeek = weekHistory.find(w => w.weekId === getLastYearWeek());
+            const filteredRecipes = recipes.filter(r => r.temporada === 'all' || r.temporada === season);
+            const shoppingList = generateShoppingList();
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                            <p className="text-gray-600">Cargando datos...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+                    <div className="max-w-7xl mx-auto">
+                        {/* RESTO DEL CÓDIGO CONTINÚA... */}
+                        <div className="bg-white rounded-lg shadow-md p-6">
+                            <h1 className="text-3xl font-bold text-gray-800 mb-4">Planificador de Menús Semanal</h1>
+                            <p className="text-gray-600 mb-6">Semana {currentWeekId} · {recipes.length} recetas · Guardado en Supabase</p>
+                            
+                            <div className="mb-6">
+                                <button
+                                    onClick={() => setShowRecipeForm(true)}
+                                    className="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 font-semibold"
+                                >
+                                    + Nueva Receta
+                                </button>
+                            </div>
+
+                            {showRecipeForm && (
+                                <div className="mb-6 p-6 border-2 border-orange-200 rounded-lg bg-orange-50">
+                                    <h3 className="text-xl font-bold mb-4">Nueva Receta</h3>
+                                    <input
+                                        type="text"
+                                        placeholder="Nombre de la receta"
+                                        value={newRecipe.nombre}
+                                        onChange={(e) => setNewRecipe({ ...newRecipe, nombre: e.target.value })}
+                                        className="w-full px-4 py-2 border rounded-lg mb-4"
+                                    />
+                                    <div className="grid grid-cols-3 gap-4 mb-4">
+                                        <select
+                                            value={newRecipe.temporada}
+                                            onChange={(e) => setNewRecipe({ ...newRecipe, temporada: e.target.value })}
+                                            className="px-4 py-2 border rounded-lg"
+                                        >
+                                            <option value="all">Todo el año</option>
+                                            <option value="verano">Verano</option>
+                                            <option value="invierno">Invierno</option>
+                                        </select>
+                                        <select
+                                            value={newRecipe.tipo}
+                                            onChange={(e) => setNewRecipe({ ...newRecipe, tipo: e.target.value })}
+                                            className="px-4 py-2 border rounded-lg"
+                                        >
+                                            <option value="batch">Batch Cooking</option>
+                                            <option value="momento">Al momento</option>
+                                        </select>
+                                        <input
+                                            type="number"
+                                            value={newRecipe.raciones}
+                                            onChange={(e) => setNewRecipe({ ...newRecipe, raciones: parseInt(e.target.value) })}
+                                            className="px-4 py-2 border rounded-lg"
+                                            placeholder="Raciones"
+                                        />
+                                    </div>
+
+                                    <h4 className="font-semibold mb-2">Ingredientes:</h4>
+                                    {newRecipe.ingredientes.map((ing, idx) => (
+                                        <div key={idx} className="grid grid-cols-5 gap-2 mb-2">
+                                            <input
+                                                type="text"
+                                                placeholder="Ingrediente"
+                                                value={ing.name}
+                                                onChange={(e) => {
+                                                    const newIngs = [...newRecipe.ingredientes];
+                                                    newIngs[idx].name = e.target.value;
+                                                    setNewRecipe({ ...newRecipe, ingredientes: newIngs });
+                                                }}
+                                                className="col-span-2 px-3 py-2 border rounded"
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder="Cantidad"
+                                                value={ing.amount}
+                                                onChange={(e) => {
+                                                    const newIngs = [...newRecipe.ingredientes];
+                                                    newIngs[idx].amount = parseFloat(e.target.value);
+                                                    setNewRecipe({ ...newRecipe, ingredientes: newIngs });
+                                                }}
+                                                className="px-3 py-2 border rounded"
+                                            />
+                                            <select
+                                                value={ing.unit}
+                                                onChange={(e) => {
+                                                    const newIngs = [...newRecipe.ingredientes];
+                                                    newIngs[idx].unit = e.target.value;
+                                                    setNewRecipe({ ...newRecipe, ingredientes: newIngs });
+                                                }}
+                                                className="px-3 py-2 border rounded"
+                                            >
+                                                <option value="g">g</option>
+                                                <option value="kg">kg</option>
+                                                <option value="ml">ml</option>
+                                                <option value="l">l</option>
+                                                <option value="unidad">unidad</option>
+                                            </select>
+                                            <select
+                                                value={ing.category}
+                                                onChange={(e) => {
+                                                    const newIngs = [...newRecipe.ingredientes];
+                                                    newIngs[idx].category = e.target.value;
+                                                    setNewRecipe({ ...newRecipe, ingredientes: newIngs });
+                                                }}
+                                                className="px-3 py-2 border rounded"
+                                            >
+                                                <option value="frescos">Frescos</option>
+                                                <option value="proteinas">Proteínas</option>
+                                                <option value="despensa">Despensa</option>
+                                            </select>
+                                        </div>
+                                    ))}
+                                    <button
+                                        onClick={addIngredientToNewRecipe}
+                                        className="text-orange-600 mb-4"
+                                    >
+                                        + Añadir ingrediente
+                                    </button>
+
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={saveRecipe}
+                                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                        >
+                                            Guardar
+                                        </button>
+                                        <button
+                                            onClick={() => setShowRecipeForm(false)}
+                                            className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {recipes.map(recipe => (
+                                    <div key={recipe.id} className="border rounded-lg p-4">
+                                        <div className="flex justify-between">
+                                            <div>
+                                                <h3 className="font-bold text-lg">{recipe.nombre}</h3>
+                                                <p className="text-sm text-gray-600">
+                                                    {recipe.temporada} · {recipe.tipo} · {recipe.raciones} pers.
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => deleteRecipe(recipe.id)}
+                                                className="text-red-600 hover:text-red-800"
+                                            >
+                                                Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<MealPlannerApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
